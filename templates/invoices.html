@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Invoices — IDOR Lab{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header fade-in">
+    <div class="breadcrumb">Home / Invoices</div>
+    <h1>My Invoices — IDOR Lab</h1>
+    <p>
+      <span class="vuln-tag idor">L4 · IDOR</span>
+      <span class="vuln-tag owasp" style="margin-left:6px;">OWASP A01:2021</span>
+    </p>
+  </div>
+
+  <!-- Challenge Objective -->
+  <div class="card fade-in" style="border-color:#9d4edd44;margin-bottom:28px;">
+    <div class="card-header">
+      <div class="card-icon red">🎯</div>
+      <div>
+        <div class="card-title">Mục tiêu L4</div>
+      </div>
+    </div>
+    <div style="font-size:0.9rem;color:var(--text-secondary);">
+      Bạn đang đăng nhập với tư cách <strong>{{ user or 'pentester' }}</strong> (User ID: {{ user_id }}).
+      <br>
+      Bên dưới là danh sách hóa đơn của bạn. Hệ thống quản lý hóa đơn của trang web này có thể đang mắc lỗi kiểm tra phân quyền (Access Control). Hãy thử tìm cách xem trộm hóa đơn của những người dùng khác.
+    </div>
+  </div>
+
+  <!-- My invoices -->
+  <div class="card fade-in" style="margin-bottom:28px;">
+    <div class="card-header">
+      <div class="card-icon purple">📄</div>
+      <div>
+        <div class="card-title">Hóa đơn của tôi</div>
+        <div class="card-subtitle">Chỉ hiển thị hóa đơn thuộc user_id={{ user_id }}</div>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Invoice ID</th>
+            <th>Sản phẩm</th>
+            <th>Số tiền</th>
+            <th>Trạng thái</th>
+            <th>Ngày</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for inv in invoices %}
+          <tr>
+            <td><span class="mono">#{{ inv.id }}</span></td>
+            <td>{{ inv.product }}</td>
+            <td style="color:var(--accent-cyan);font-family:var(--font-mono);">${{ "%.2f"|format(inv.amount) }}</td>
+            <td>
+              {% if inv.status == 'PAID' %}
+                <span class="badge badge-paid">{{ inv.status }}</span>
+              {% else %}
+                <span class="badge badge-pending">{{ inv.status }}</span>
+              {% endif %}
+            </td>
+            <td style="font-size:0.78rem;color:var(--text-muted);">{{ inv.created_at }}</td>
+            <td>
+              <a href="{{ url_for('invoice_page', invoice_id=inv.id) }}" class="btn btn-ghost btn-sm">View</a>
+              <a href="/api/invoice/{{ inv.id }}" class="btn btn-ghost btn-sm" target="_blank">JSON</a>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" style="text-align:center;color:var(--text-muted);">Không có hóa đơn.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+</div>
+{% endblock %}

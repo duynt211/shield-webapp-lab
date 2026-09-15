@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Comments — Stored XSS Lab{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header fade-in">
+    <div class="breadcrumb">Home / Comments</div>
+    <h1>Product Reviews — XSS Lab</h1>
+    <p>
+      <span class="vuln-tag xss">L3 · Stored XSS</span>
+      <span class="vuln-tag owasp" style="margin-left:6px;">OWASP A03:2021</span>
+    </p>
+  </div>
+
+  <div class="split-layout fade-in">
+    <!-- Left: Comments + Submit form -->
+    <div>
+      <!-- Submit form -->
+      <div class="card" style="margin-bottom:24px;">
+        <div class="card-header">
+          <div class="card-icon yellow">✏️</div>
+          <div>
+            <div class="card-title">Để lại nhận xét</div>
+            <div class="card-subtitle">Nội dung KHÔNG được sanitize — XSS stored trực tiếp</div>
+          </div>
+        </div>
+        <form method="POST" action="{{ url_for('comments') }}" id="comment-form">
+          <div class="grid-2" style="gap:14px;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" for="author-input">Tên</label>
+              <input type="text" class="form-control" id="author-input" name="author"
+                     value="{{ user or '' }}" placeholder="Anonymous"/>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" for="product-select">Sản phẩm</label>
+              <select class="form-control" id="product-select" name="product_id">
+                {% for p in products %}
+                <option value="{{ p.id }}">{{ p.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:14px;">
+            <label class="form-label" for="content-input">
+              Nội dung comment
+              <span class="tip" style="margin-left:8px;">⚠ HTML không được escape</span>
+            </label>
+            <textarea class="form-control" id="content-input" name="content"
+                      placeholder="Nhận xét của bạn... hoặc thử payload XSS"
+                      rows="4"></textarea>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button type="submit" class="btn btn-primary" id="submit-comment-btn">💬 Gửi nhận xét</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Comments list -->
+      <div>
+        <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:14px;">
+          💬 {{ comments|length }} Nhận xét (rendered as raw HTML — XSS live below)
+        </div>
+        {% for c in comments %}
+        <div class="comment-card">
+          <div class="comment-meta">
+            <div class="comment-avatar">{{ c.author[0]|upper }}</div>
+            <div>
+              <div class="comment-author">{{ c.author }}</div>
+              <div class="comment-product">📦 {{ c.product_name or 'Unknown' }}</div>
+            </div>
+            <div class="comment-time">{{ c.created_at }}</div>
+          </div>
+          <!-- L3 VULN: |safe renders raw HTML — XSS fires here -->
+          <div class="comment-body">{{ c.content|safe }}</div>
+        </div>
+        {% else %}
+        <div style="text-align:center;color:var(--text-muted);padding:32px;">Chưa có nhận xét nào.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Right: Useful links -->
+    <div>
+      <div class="card" style="margin-bottom:20px;position:sticky;top:88px;">
+        <div class="card-header">
+          <div class="card-icon red">🎯</div>
+          <div>
+            <div class="card-title">Mục tiêu L3</div>
+          </div>
+        </div>
+        <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;">
+          Trang web này lưu trữ nhận xét của người dùng. Tuy nhiên, nội dung đầu vào không được kiểm tra chặt chẽ.
+          Hãy tìm cách chèn mã độc JavaScript để đánh cắp Cookie (Session) của người dùng khác khi họ xem bình luận của bạn.
+        </div>
+        <a href="{{ url_for('xss_log') }}" class="btn btn-danger" style="width:100%;justify-content:center;margin-top:8px;">
+          🍪 Truy cập Server Thu thập Cookie
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

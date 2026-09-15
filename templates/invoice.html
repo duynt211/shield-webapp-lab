@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Invoice #{{ invoice.id }} — IDOR Lab{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header fade-in">
+    <div class="breadcrumb">Home / Invoices / #{{ invoice.id }}</div>
+    <h1>Invoice #{{ invoice.id }}</h1>
+    <p>
+      <span class="vuln-tag idor">L4 · IDOR</span>
+      {% if invoice.username != (user or 'pentester') %}
+        <span class="vuln-tag auth" style="margin-left:8px;">⚡ Truy cập trái phép — không phải hóa đơn của bạn!</span>
+      {% endif %}
+    </p>
+  </div>
+
+  <div class="card fade-in" style="margin-bottom:28px;">
+    <div class="card-header">
+      <div class="card-icon purple">🧾</div>
+      <div>
+        <div class="card-title">Chi tiết Hóa đơn</div>
+        <div class="card-subtitle">
+          Chủ sở hữu: <strong style="color:var(--accent-red);">{{ invoice.username }}</strong>
+          (User ID: {{ invoice.user_id }})
+        </div>
+      </div>
+      <div style="margin-left:auto;">
+        {% if invoice.status == 'PAID' %}
+          <span class="badge badge-paid" style="font-size:0.9rem;padding:6px 16px;">✓ {{ invoice.status }}</span>
+        {% else %}
+          <span class="badge badge-pending" style="font-size:0.9rem;padding:6px 16px;">⏳ {{ invoice.status }}</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="invoice-detail" style="margin-bottom:24px;">
+      <div class="invoice-field">
+        <label>Invoice Number</label>
+        <div class="val" style="color:var(--accent-cyan);">#{{ invoice.id }}</div>
+      </div>
+      <div class="invoice-field">
+        <label>Ngày tạo</label>
+        <div class="val">{{ invoice.created_at }}</div>
+      </div>
+      <div class="invoice-field">
+        <label>Khách hàng</label>
+        <div class="val" style="color:var(--accent-red);">{{ invoice.username }}</div>
+      </div>
+      <div class="invoice-field">
+        <label>User ID</label>
+        <div class="val" style="color:var(--accent-red);">{{ invoice.user_id }}</div>
+      </div>
+      <div class="invoice-field" style="grid-column:1/-1;">
+        <label>Sản phẩm</label>
+        <div class="val">{{ invoice.product }}</div>
+      </div>
+      <div class="invoice-field">
+        <label>Số tiền</label>
+        <div class="val" style="font-family:var(--font-display);font-size:1.4rem;color:var(--accent-cyan);">
+          ${{ "%.2f"|format(invoice.amount) }}
+        </div>
+      </div>
+      <div class="invoice-field">
+        <label>Thẻ thanh toán</label>
+        <div class="val" style="color:var(--accent-red);">•••• •••• •••• {{ invoice.card_last4 }}</div>
+      </div>
+      <div class="invoice-field" style="grid-column:1/-1;">
+        <label>Địa chỉ thanh toán</label>
+        <div class="val" style="color:var(--accent-red);">{{ invoice.billing_addr }}</div>
+      </div>
+    </div>
+
+
+  </div>
+
+  <div style="display:flex;gap:12px;margin-bottom:28px;" class="fade-in">
+    <a href="{{ url_for('invoices') }}" class="btn btn-ghost">← Quay lại danh sách</a>
+    <a href="/api/invoice/{{ invoice.id }}" class="btn btn-primary" target="_blank">📡 Xem JSON Response</a>
+    <a href="{{ url_for('view_logs') }}" class="btn btn-ghost">📋 Xem Log</a>
+  </div>
+</div>
+{% endblock %}

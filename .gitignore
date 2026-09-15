@@ -1,0 +1,19 @@
+# Ignore git and IDE files
+.git/
+.vscode/
+
+# Ignore python cache
+__pycache__/
+*.pyc
+
+# Ignore database and logs (they are generated on the fly)
+lab.db
+logs/
+
+# Ignore deployment scripts and archives
+deploy.py
+deploy.zip
+deploy.tar.gz
+
+# Ignore teacher's solution file
+DAP_AN_GIANG_VIEN.md

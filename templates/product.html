@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Product Detail — SQLi Lab{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header fade-in">
+    <div class="breadcrumb">Home / Products / SQLi Lab</div>
+    <h1>Product Detail — SQLi Target</h1>
+    <p>
+      <span class="vuln-tag sqli">L1 · Union-Based</span>
+      <span class="vuln-tag sqli" style="margin-left:6px;">L2 · Time-Based Blind</span>
+      <span class="vuln-tag owasp" style="margin-left:6px;">OWASP A03:2021</span>
+    </p>
+  </div>
+
+  <!-- ─── SQLi Input ─── -->
+  <div class="card fade-in" style="margin-bottom:28px;">
+    <div class="card-header">
+      <div class="card-icon red">💉</div>
+      <div>
+        <div class="card-title">SQL Injection Playground</div>
+        <div class="card-subtitle">GET /product?id=&lt;VULNERABLE&gt; — raw string interpolation</div>
+      </div>
+    </div>
+
+    <form method="GET" action="{{ url_for('product') }}" id="sqli-form">
+      <div class="form-group">
+        <label class="form-label" for="id-input">Tham số id (chưa được sanitize)</label>
+        <div style="display:flex;gap:10px;">
+          <input type="text" class="form-control" id="id-input" name="id"
+                 value="{{ pid }}" placeholder="e.g. 1"
+                 style="font-family:var(--font-mono);" autocomplete="off"/>
+          <button type="submit" class="btn btn-danger">▶ Gửi</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  {% if sql_error %}
+  <div class="alert alert-danger fade-in" style="margin-bottom:28px;">
+    <span>❌</span>
+    <div><strong>Database Error:</strong> <code>{{ sql_error }}</code></div>
+  </div>
+  {% endif %}
+
+  <!-- ─── L2 Timer ─── -->
+  <div class="card fade-in" id="timer-card" style="margin-bottom:28px;display:none;">
+    <div class="card-header">
+      <div class="card-icon cyan">⏱️</div>
+      <div>
+        <div class="card-title">L2 — Time-Based Blind SQLi</div>
+        <div class="card-subtitle">Đo độ trễ phản hồi để chứng minh blind injection</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div style="font-family:var(--font-display);font-size:3rem;color:var(--accent-cyan);" id="timer-display">
+        {% if 'sleep' in pid.lower() %}5.0s{% else %}0.0s{% endif %}
+      </div>
+      <div>
+        <div style="color:var(--text-secondary);font-size:0.9rem;">Thời gian server phản hồi</div>
+        <div style="font-size:0.78rem;color:var(--text-muted);font-family:var(--font-mono);">
+          IF(1=1, SLEEP(5), 0) → điều kiện TRUE → delay 5s
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Result Table ─── -->
+  {% if union_data %}
+  <div class="card fade-in" style="margin-bottom:28px;border-color:var(--accent-red);">
+    <div class="card-header">
+      <div class="card-icon red">🚨</div>
+      <div>
+        <div class="card-title">SQLi — Kết quả Khai thác</div>
+        <div class="card-subtitle">{{ union_data|length }} hàng trả về từ câu truy vấn bị inject</div>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            {% for col in union_data[0].keys() %}
+            <th>{{ col }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in union_data %}
+          <tr>
+            {% for val in row.values() %}
+            <td>
+              {% if val and (val|string|length > 8) and ('$' in (val|string) or val|string in ['admin','user']) %}
+                <span class="mono" style="color:var(--accent-red);">{{ val }}</span>
+              {% elif val and loop.index in [2,3] %}
+                <span class="mono" style="color:var(--accent-red);font-weight:700;">{{ val }}</span>
+              {% else %}
+                <span class="mono">{{ val }}</span>
+              {% endif %}
+            </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% elif product %}
+  <!-- Normal product view -->
+  <div class="card fade-in" style="margin-bottom:28px;">
+    <div class="card-header">
+      <div class="card-icon blue">📦</div>
+      <div>
+        <div class="card-title">{{ product.name or product.id }}</div>
+        <div class="card-subtitle">Product ID: {{ product.id }}</div>
+      </div>
+    </div>
+    {% if product.description %}
+    <p style="color:var(--text-secondary);margin-bottom:12px;">{{ product.description }}</p>
+    {% endif %}
+    {% if product.price %}
+    <div style="font-family:var(--font-display);font-size:1.6rem;color:var(--accent-cyan);">${{ "%.2f"|format(product.price|float) }}</div>
+    {% endif %}
+    {% if product.category %}
+    <div style="margin-top:8px;"><span class="badge badge-info">{{ product.category }}</span></div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+
+{% block extra_js %}
+<script>
+  // Show timer card if SLEEP in URL
+  if (window.location.search.toLowerCase().includes('sleep')) {
+    document.getElementById('timer-card').style.display = 'block';
+  }
+</script>
+{% endblock %}
+{% endblock %}

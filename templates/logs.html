@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}Access Logs — Shield-Webapp.Lab{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header fade-in">
+    <div class="breadcrumb">Home / Logs</div>
+    <h1>Access Logs</h1>
+    <p>Nhật ký truy cập server — dấu vết của từng lần khai thác lỗ hổng</p>
+  </div>
+
+  <!-- Legend -->
+  <div class="card fade-in" style="margin-bottom:24px;">
+    <div class="card-header">
+      <div class="card-icon yellow">🔍</div>
+      <div>
+        <div class="card-title">Chú giải màu sắc Log</div>
+        <div class="card-subtitle">Mỗi màu tương ứng một loại tấn công</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="width:12px;height:12px;border-radius:50%;background:var(--accent-red);"></div>
+        <span style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text-secondary);">[L1/L2-SQLI] — SQL Injection</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="width:12px;height:12px;border-radius:50%;background:var(--accent-yellow);"></div>
+        <span style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text-secondary);">[L3-XSS] — Stored XSS</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="width:12px;height:12px;border-radius:50%;background:var(--accent-purple);"></div>
+        <span style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text-secondary);">[L4-IDOR] — IDOR</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="width:12px;height:12px;border-radius:50%;background:var(--accent-cyan);"></div>
+        <span style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text-secondary);">[L5-SSRF] — SSRF</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="width:12px;height:12px;border-radius:50%;background:var(--accent-green);"></div>
+        <span style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text-secondary);">[L6/AUTH] — Auth Events</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Log container -->
+  <div class="card fade-in">
+    <div class="card-header">
+      <div class="card-icon blue">📋</div>
+      <div>
+        <div class="card-title">logs/access.log</div>
+        <div class="card-subtitle">{{ log_lines|length }} dòng gần nhất — tự động màu hóa theo loại</div>
+      </div>
+      <div style="margin-left:auto;">
+        <a href="{{ url_for('view_logs') }}" class="btn btn-ghost btn-sm">🔄 Refresh</a>
+      </div>
+    </div>
+    <div class="log-container" id="log-container">
+      {% if log_lines %}
+        {% for line in log_lines %}
+        <div class="log-line">{{ line.strip() }}</div>
+        {% endfor %}
+      {% else %}
+        <div style="color:var(--text-muted);text-align:center;padding:20px;">
+          Chưa có log. Hãy thực hiện các bài lab để tạo log.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- OWASP Log Matrix -->
+  <div class="card fade-in" style="margin-top:28px;">
+    <div class="card-header">
+      <div class="card-icon purple">📊</div>
+      <div>
+        <div class="card-title">Ma trận dấu vết — OWASP Log Signatures</div>
+        <div class="card-subtitle">Tìm từng dấu hiệu trong log để hoàn thành bài nộp</div>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Lab</th>
+            <th>Log Signature</th>
+            <th>OWASP</th>
+            <th>Ý nghĩa</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="vuln-tag sqli">L1</span></td>
+            <td><span class="mono" style="color:var(--accent-red);">[L1-SQLI] query=SELECT...UNION...</span></td>
+            <td><span class="mono">A03:2021</span></td>
+            <td style="font-size:0.82rem;">Union-based SQLi đã được thực thi</td>
+          </tr>
+          <tr>
+            <td><span class="vuln-tag sqli">L2</span></td>
+            <td><span class="mono" style="color:var(--accent-red);">[L2-SQLI-TIMEBASED] SLEEP(5)</span></td>
+            <td><span class="mono">A03:2021</span></td>
+            <td style="font-size:0.82rem;">Time-based blind SQLi với delay</td>
+          </tr>
+          <tr>
+            <td><span class="vuln-tag xss">L3</span></td>
+            <td><span class="mono" style="color:var(--accent-yellow);">[L3-XSS-STORED] payload=&lt;script&gt;</span></td>
+            <td><span class="mono">A03:2021</span></td>
+            <td style="font-size:0.82rem;">XSS payload đã được lưu vào DB</td>
+          </tr>
+          <tr>
+            <td><span class="vuln-tag xss">L3</span></td>
+            <td><span class="mono" style="color:var(--accent-yellow);">[L3-XSS-COOKIE-STOLEN] cookie=...</span></td>
+            <td><span class="mono">A03:2021</span></td>
+            <td style="font-size:0.82rem;">Cookie bị đánh cắp qua /steal</td>
+          </tr>
+          <tr>
+            <td><span class="vuln-tag idor">L4</span></td>
+            <td><span class="mono" style="color:var(--accent-purple);">[L4-IDOR] user_id=6 accessed invoice_id=1043</span></td>
+            <td><span class="mono">A01:2021</span></td>
+            <td style="font-size:0.82rem;">Truy cập trái phép hóa đơn người khác</td>
+          </tr>
+          <tr>
+            <td><span class="vuln-tag ssrf">L5</span></td>
+            <td><span class="mono" style="color:var(--accent-cyan);">[L5-SSRF] INTERNAL url=http://169.254...</span></td>
+            <td><span class="mono">A10:2021</span></td>
+            <td style="font-size:0.82rem;">Server fetch internal metadata</td>
+          </tr>
+          <tr>
+            <td><span class="vuln-tag auth">L6</span></td>
+            <td><span class="mono" style="color:var(--accent-green);">[L6-VULN] role_override=admin INJECTED</span></td>
+            <td><span class="mono">A07:2021</span></td>
+            <td style="font-size:0.82rem;">Privilege escalation qua POST body</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% block extra_js %}
+<script>
+  // Auto-scroll to bottom of log
+  const logEl = document.getElementById('log-container');
+  if (logEl) logEl.scrollTop = logEl.scrollHeight;
+</script>
+{% endblock %}
+{% endblock %}

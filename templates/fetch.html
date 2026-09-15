@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}URL Fetcher — SSRF Lab{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header fade-in">
+    <div class="breadcrumb">Home / URL Fetcher</div>
+    <h1>URL Fetcher — SSRF Lab</h1>
+    <p>
+      <span class="vuln-tag ssrf">L5 · SSRF</span>
+      <span class="vuln-tag owasp" style="margin-left:6px;">OWASP A10:2021</span>
+    </p>
+  </div>
+
+  <div class="split-layout fade-in">
+    <!-- Left: Main form -->
+    <div>
+      <div class="card" style="border-color:#00d4ff33;margin-bottom:24px;">
+        <div class="card-header">
+          <div class="card-icon cyan">🌐</div>
+          <div>
+            <div class="card-title">Server-Side URL Fetcher</div>
+            <div class="card-subtitle">Server fetch bất kỳ URL — kể cả internal endpoints</div>
+          </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('fetch_url') }}" id="ssrf-form">
+          <div class="form-group">
+            <label class="form-label" for="url-input">URL để fetch</label>
+            <input type="text" class="form-control" id="url-input" name="url"
+                   value="{{ fetched_url or '' }}"
+                   placeholder="http://example.com hoặc http://169.254.169.254/latest/meta-data/"
+                   style="font-family:var(--font-mono);" autocomplete="off"/>
+          </div>
+          <button type="submit" class="btn btn-primary" id="fetch-btn">🌐 Fetch URL</button>
+        </form>
+      </div>
+
+      <!-- Result -->
+      {% if result is not none %}
+      {% set res_class = 'result-ok' if status_code == 200 else 'result-err' %}
+      {% set icon_class = 'green' if status_code == 200 else 'red' %}
+      {% set icon_char = '✅' if status_code == 200 else '❌' %}
+      {% if status_code == 200 %}
+      <div class="card result-ok">
+        <div class="card-header">
+          <div class="card-icon green">✅</div>
+      {% else %}
+      <div class="card result-err">
+        <div class="card-header">
+          <div class="card-icon red">❌</div>
+      {% endif %}
+          <div>
+            <div class="card-title">Server Response</div>
+            <div class="card-subtitle">
+              <span class="mono">{{ fetched_url }}</span> →
+              {% if status_code == 200 %}
+              HTTP <strong class="result-ok-text">{{ status_code }}</strong>
+              {% else %}
+              HTTP <strong class="result-err-text">{{ status_code }}</strong>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="ssrf-response">{{ result | e }}</div>
+        <div class="ssrf-response">{{ result | e }}</div>
+      </div>
+      {% elif error %}
+      <div class="alert alert-danger">
+        <span>❌</span> <strong>Lỗi fetch:</strong> {{ error }}
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Right: Challenge Info -->
+    <div>
+      <div class="card" style="position:sticky;top:88px;">
+        <div class="card-header">
+          <div class="card-icon red">🎯</div>
+          <div>
+            <div class="card-title">Mục tiêu L5</div>
+          </div>
+        </div>
+        <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;">
+          Ứng dụng này cho phép người dùng nhập một URL để máy chủ (server) tải nội dung về và hiển thị.
+          <br><br>
+          Bằng cách lợi dụng tính năng này, hãy thử buộc server truy cập vào các dịch vụ nội bộ (localhost) hoặc giả lập việc truy xuất <strong>metadata</strong> của hạ tầng đám mây (Cloud IMDS).
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

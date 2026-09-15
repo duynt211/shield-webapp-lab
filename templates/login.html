@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Login — Shield-Webapp.Lab{% endblock %}
+{% block content %}
+<div class="login-wrapper">
+  <div class="login-box fade-in">
+    <div class="login-logo">
+      <div class="brand-icon-lg">🛡️</div>
+      <h2>Shield<span style="color:var(--accent-cyan)">Webapp</span>.lab</h2>
+      <p>Secure Authentication Portal · v2.4.1</p>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger">
+      <span>⚠️</span> {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('login') }}" id="login-form">
+      <div class="form-group">
+        <label class="form-label" for="username">Username</label>
+        <input type="text" class="form-control" id="username" name="username"
+               placeholder="e.g. pentester" autocomplete="username" required/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input type="password" class="form-control" id="password" name="password"
+               placeholder="••••••••••" autocomplete="current-password" required/>
+      </div>
+      <!-- L6 VULN: hidden role field — visible in source / interceptable by Burp -->
+      <!-- Hint: Try adding role=admin to POST body via Burp Repeater -->
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px;" id="login-btn">
+        🔐 Đăng nhập
+      </button>
+    </form>
+
+    <hr class="divider"/>
+
+    <!-- L6 Hint Panel -->
+    <div class="card" style="background:var(--bg-secondary);border-color:#ffd60033;margin-top:0;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <span class="vuln-tag auth">L6 · Burp Repeater</span>
+        <span class="vuln-tag owasp">A07:2021</span>
+      </div>
+      <p style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:12px;">
+        Bắt request POST này bằng Burp Suite, gửi sang <strong>Repeater</strong>,
+        thêm tham số <code style="color:var(--accent-yellow);">role=admin</code> vào body và gửi lại.
+      </p>
+      <div class="payload-box" style="border-color:var(--accent-yellow);color:var(--accent-yellow);">
+        username=pentester&amp;password=T3st!ng2024&amp;<span style="background:#ffd60033;padding:0 3px;border-radius:3px;">role=admin</span>
+      </div>
+      <div style="margin-top:12px;font-size:0.78rem;color:var(--text-muted);">
+        Sau khi thành công, vào <a href="{{ url_for('admin') }}">/admin</a> để xem panel quản trị.
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:20px;font-size:0.78rem;color:var(--text-muted);">
+      <span>Demo creds: pentester / T3st!ng2024</span>
+    </div>
+  </div>
+</div>
+{% endblock %}

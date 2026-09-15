@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Admin Panel — Shield-Webapp.Lab{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header fade-in">
+    <div class="breadcrumb">Home / Admin</div>
+    <h1>🔴 Admin Panel</h1>
+    <p>
+      <span class="vuln-tag auth">L6 · Privilege Escalation</span>
+      <span class="vuln-tag owasp" style="margin-left:6px;">OWASP A07:2021</span>
+      &nbsp; Logged in as: <strong style="color:var(--accent-red);">{{ user }}</strong>
+    </p>
+  </div>
+
+  <div class="alert alert-danger fade-in">
+    <span>🚨</span>
+    <div>
+      <strong>[L6] Admin panel đã được truy cập thành công!</strong>
+      Tài khoản <code>{{ user }}</code> có <code>role=admin</code> được inject qua POST body trong Burp Repeater.
+      Đây là bằng chứng khai thác hoàn chỉnh cho L6.
+    </div>
+  </div>
+
+  <!-- Users table (leaked via SQLi/admin) -->
+  <div class="card fade-in" style="margin-bottom:28px;border-color:var(--accent-red);">
+    <div class="card-header">
+      <div class="card-icon red">👥</div>
+      <div>
+        <div class="card-title">All Users — Database Dump</div>
+        <div class="card-subtitle">Dữ liệu này cũng có thể lấy qua L1 SQLi UNION SELECT</div>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Password</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Session Token</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td><span class="mono">{{ u.id }}</span></td>
+            <td><strong style="color:var(--text-primary);">{{ u.username }}</strong></td>
+            <td><span class="mono" style="color:var(--accent-red);">{{ u.password }}</span></td>
+            <td><span class="mono" style="font-size:0.78rem;">{{ u.email }}</span></td>
+            <td>
+              {% if u.role == 'admin' %}
+                <span class="badge badge-danger">{{ u.role }}</span>
+              {% else %}
+                <span class="badge badge-info">{{ u.role }}</span>
+              {% endif %}
+            </td>
+            <td><span class="mono" style="font-size:0.72rem;color:var(--accent-purple);">{{ u.session_token }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Access Log -->
+  <div class="card fade-in">
+    <div class="card-header">
+      <div class="card-icon yellow">📋</div>
+      <div>
+        <div class="card-title">Recent Access Log (last 50 lines)</div>
+        <div class="card-subtitle">Dấu vết của tất cả các lần khai thác</div>
+      </div>
+    </div>
+    <div class="log-container">
+      {% for line in log_lines %}
+      <div class="log-line">{{ line.strip() }}</div>
+      {% endfor %}
+    </div>
+    <div style="margin-top:12px;">
+      <a href="{{ url_for('view_logs') }}" class="btn btn-ghost btn-sm">📋 Full Log View</a>
+    </div>
+  </div>
+
+  <!-- L6 Fix -->
+  <div class="card fade-in" style="margin-top:28px;">
+    <div class="card-header">
+      <div class="card-icon green">🛡️</div>
+      <div>
+        <div class="card-title">L6 — Phân tích Auth Bypass</div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <div style="font-size:0.75rem;font-weight:700;color:var(--accent-red);margin-bottom:6px;">❌ Vulnerable</div>
+        <div class="terminal" style="font-size:0.73rem;border-color:#ff3e6c44;">
+<span class="error"># L6 VULN — app.py:login()</span>
+<span class="highlight">role_override = request.form.get("role")</span>
+<span class="output">if row:</span>
+<span class="highlight">    session["role"] = role_override \</span>
+<span class="highlight">        if role_override else row["role"]</span>
+<span class="error"># Attacker adds role=admin to POST!</span>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.75rem;font-weight:700;color:var(--accent-green);margin-bottom:6px;">✅ Fixed</div>
+        <div class="terminal" style="font-size:0.73rem;border-color:#00ff9d44;">
+<span class="prompt"># FIX — Role từ DB, không từ POST</span>
+<span class="cmd">if row:</span>
+<span class="cmd">    session["role"] = row["role"]</span>
+<span class="cmd">    # Never trust client-supplied role</span>
+<span class="output"># + RBAC middleware</span>
+<span class="output"># + Audit log mọi role change</span>
+        </div>
+      </div>
+    </div>
+    <div class="alert alert-info" style="margin-top:16px;font-size:0.82rem;">
+      <span>📋</span>
+      <div>
+        <strong>Log:</strong> <code>[L6-VULN] role_override=admin INJECTED</code><br/>
+        <strong>Cách vá:</strong> Không tin tưởng client-supplied role · Role luôn lấy từ DB ·
+        RBAC/ABAC middleware · MFA cho tài khoản admin · Session token rotation · Brute-force protection
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

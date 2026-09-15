@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Products — Shield-Webapp.Lab{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header fade-in">
+    <div class="breadcrumb">Home / Products</div>
+    <h1>Product Catalog</h1>
+    <p>Danh mục sản phẩm bảo mật. Trang này là bề mặt tấn công cho L1/L2 SQLi.</p>
+  </div>
+
+  <div class="grid-auto fade-in">
+    {% for p in products %}
+    <a href="{{ url_for('product') }}?id={{ p.id }}" class="lab-card" style="text-decoration:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <span class="vuln-tag sqli">ID: {{ p.id }}</span>
+        <span style="font-size:0.78rem;color:var(--text-muted);font-family:var(--font-mono);">{{ p.category }}</span>
+      </div>
+      <h3 style="font-size:1rem;color:var(--text-primary);margin-bottom:6px;">{{ p.name }}</h3>
+      <p style="font-size:0.83rem;color:var(--text-secondary);">{{ p.description }}</p>
+      <div style="margin-top:12px;font-family:var(--font-display);font-size:1.2rem;color:var(--accent-cyan);">
+        ${{ "%.2f"|format(p.price) }}
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+  <div class="alert alert-danger fade-in" style="margin-top:32px;">
+    <span>💉</span>
+    <div>
+      <strong>SQLi Target:</strong> Tham số <code>?id=</code> trong URL <code>/product?id=</code> không được sanitize.
+      Click vào bất kỳ sản phẩm nào, sau đó thay đổi tham số id để khai thác.
+    </div>
+  </div>
+</div>
+{% endblock %}

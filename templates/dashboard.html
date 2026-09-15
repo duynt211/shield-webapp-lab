@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Shield-Webapp.Lab{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header fade-in">
+    <div class="breadcrumb">Home / Dashboard</div>
+    <h1>Welcome, {{ user }}</h1>
+    <p>Role: <span class="nav-badge" style="font-size:0.85rem;">{{ role }}</span>
+      {% if role == 'admin' %}
+        &nbsp;<span class="vuln-tag auth">⚡ Privilege Escalation Successful!</span>
+      {% endif %}
+    </p>
+  </div>
+
+  {% if role == 'admin' %}
+  <div class="alert alert-danger fade-in">
+    <span>🚨</span>
+    <div>
+      <strong>[L6-VULN] Privilege Escalation thành công!</strong><br>
+      Tài khoản <code>{{ user }}</code> đã leo quyền lên <code>admin</code> bằng cách inject <code>role=admin</code>
+      vào POST body qua Burp Repeater. Truy cập <a href="{{ url_for('admin') }}">Admin Panel</a> ngay.
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="grid-3 fade-in" style="margin-bottom:32px;">
+    <a href="{{ url_for('product') }}?id=1" class="lab-card">
+      <div class="lab-num">L1 + L2</div>
+      <span style="font-size:2rem;">💉</span>
+      <h3>SQL Injection</h3>
+      <p>Union-based &amp; Time-based blind</p>
+      <span class="vuln-tag sqli">A03:2021</span>
+    </a>
+    <a href="{{ url_for('comments') }}" class="lab-card">
+      <div class="lab-num">L3</div>
+      <span style="font-size:2rem;">📜</span>
+      <h3>Stored XSS</h3>
+      <p>Cookie stealer via comment injection</p>
+      <span class="vuln-tag xss">A03:2021</span>
+    </a>
+    <a href="{{ url_for('invoices') }}" class="lab-card">
+      <div class="lab-num">L4</div>
+      <span style="font-size:2rem;">🔓</span>
+      <h3>IDOR</h3>
+      <p>Access other users' invoices</p>
+      <span class="vuln-tag idor">A01:2021</span>
+    </a>
+    <a href="{{ url_for('fetch_url') }}" class="lab-card">
+      <div class="lab-num">L5</div>
+      <span style="font-size:2rem;">🌐</span>
+      <h3>SSRF</h3>
+      <p>Internal metadata endpoint exfil</p>
+      <span class="vuln-tag ssrf">A10:2021</span>
+    </a>
+    <a href="{{ url_for('xss_log') }}" class="lab-card">
+      <div class="lab-num">XSS Log</div>
+      <span style="font-size:2rem;">🍪</span>
+      <h3>Stolen Cookies</h3>
+      <p>View cookies captured by XSS payloads</p>
+      <span class="vuln-tag xss">Monitor</span>
+    </a>
+    <a href="{{ url_for('view_logs') }}" class="lab-card">
+      <div class="lab-num">Evidence</div>
+      <span style="font-size:2rem;">📋</span>
+      <h3>Access Logs</h3>
+      <p>Server log — dấu vết mỗi lỗ hổng</p>
+      <span class="vuln-tag owasp">Defense</span>
+    </a>
+  </div>
+
+  <!-- Quick session info -->
+  <div class="card fade-in">
+    <div class="card-header">
+      <div class="card-icon green">🔍</div>
+      <div>
+        <div class="card-title">Session Info</div>
+        <div class="card-subtitle">Thông tin phiên hiện tại (dùng cho L4 IDOR demo)</div>
+      </div>
+    </div>
+    <div class="code-block" style="color:var(--accent-cyan);">
+session.username = "{{ user }}"
+session.user_id  = {{ session.get('user_id','?') }}
+session.role     = "{{ role }}"
+your_invoice_id  = 1042  {# IDOR: thử truy cập /api/invoice/1043 #}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}Shield-Webapp.Lab{% endblock %}</title>
+  <meta name="description" content="OWASP Vulnerability Lab — Educational pentesting environment for Web Security Module 2"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>🛡️</text></svg>"/>
+</head>
+<body>
+<div class="scan-overlay"></div>
+
+<!-- ─── Navbar ─── -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="{{ url_for('index') }}" class="brand">
+      <div class="brand-icon">🛡️</div>
+      <span>Shield<span style="color:var(--accent-cyan)">Webapp</span>.lab</span>
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="{{ url_for('index') }}">Home</a></li>
+      <li><a href="{{ url_for('products') }}">Products</a></li>
+      <li><a href="{{ url_for('comments') }}">Comments</a></li>
+      <li><a href="{{ url_for('invoices') }}">Invoices</a></li>
+      <li><a href="{{ url_for('fetch_url') }}">Fetch</a></li>
+      <li><a href="{{ url_for('view_logs') }}">Logs</a></li>
+      {% if user %}
+      <li><a href="{{ url_for('admin') }}" style="color:var(--accent-red)">Admin</a></li>
+      {% endif %}
+    </ul>
+
+    <div class="nav-user">
+      {% if user %}
+        <span>👤 <strong>{{ user }}</strong></span>
+        <span class="nav-badge">{{ session.get('role','user') }}</span>
+        <a href="{{ url_for('logout') }}" class="btn btn-ghost btn-sm">Logout</a>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="btn btn-primary btn-sm">Login</a>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+<!-- ─── Main ─── -->
+<div class="page-wrapper">
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    <span>🛡️ shield-webapp.lab</span> &nbsp;·&nbsp;
+    <span>OWASP Top 10 Vuln Lab</span> &nbsp;·&nbsp;
+    <span style="color:var(--accent-red)">⚠ FOR EDUCATIONAL USE ONLY</span> &nbsp;·&nbsp;
+    <span>Module 2 · Labs Khai thác Web</span>
+  </footer>
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

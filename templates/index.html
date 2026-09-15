@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block title %}Shield-Webapp.Lab — OWASP Vuln Lab{% endblock %}
+{% block content %}
+<div class="container">
+
+  <!-- ─── Hero ─── -->
+  <section class="hero fade-in">
+    <div class="hero-badge">
+      🔴 Live Lab Environment &nbsp;·&nbsp; 6 Vulnerabilities Active
+    </div>
+    <h1>shield-webapp<span style="color:var(--accent-cyan)">.lab</span></h1>
+    <p>Môi trường khai thác web thực tế cho Module 2 — Khai thác 6 lỗ hổng OWASP Top 10. Đây là ứng dụng <strong>có chủ đích chứa lỗ hổng</strong> dùng cho mục đích giáo dục.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      {% if user %}
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg">⚡ Vào Dashboard</a>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg">🔐 Đăng nhập Lab</a>
+      {% endif %}
+      <a href="{{ url_for('view_logs') }}" class="btn btn-ghost btn-lg">📋 Xem Access Log</a>
+    </div>
+  </section>
+
+  <!-- ─── Stats ─── -->
+  <div class="grid-3 fade-in" style="margin-bottom:40px;">
+    <div class="stat-card">
+      <div class="stat-icon blue">🐛</div>
+      <div>
+        <div class="stat-value" data-count="6">6</div>
+        <div class="stat-label">Lỗ hổng đang hoạt động</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon red">📊</div>
+      <div>
+        <div class="stat-value" data-count="4">4</div>
+        <div class="stat-label">OWASP Categories</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green">🏆</div>
+      <div>
+        <div class="stat-value" data-count="60">60</div>
+        <div class="stat-label">Điểm tối đa (Test M2-B)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Lab cards ─── -->
+  <h2 style="font-size:1.1rem;color:var(--text-muted);margin-bottom:20px;letter-spacing:0.1em;text-transform:uppercase;">
+    📋 Các Lab
+  </h2>
+  <div class="grid-auto fade-in" style="margin-bottom:48px;">
+
+    <!-- L1 -->
+    <a href="{{ url_for('product') }}?id=1" class="lab-card" style="--glow-color:#ff3e6c08;">
+      <div class="lab-num">L1 · A03:2021</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:1.8rem;">💉</span>
+        <h3>SQLi Union-Based</h3>
+      </div>
+      <p>Khai thác UNION SELECT để lấy toàn bộ bảng <code>users</code> với username và password.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <span class="vuln-tag sqli">SQLi</span>
+        <span class="vuln-tag owasp">A03:2021</span>
+      </div>
+      <div class="lab-owasp">Endpoint: /product?id=</div>
+    </a>
+
+    <!-- L2 -->
+    <a href="{{ url_for('product') }}?id=1" class="lab-card" style="--glow-color:#ff3e6c08;">
+      <div class="lab-num">L2 · A03:2021</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:1.8rem;">⏱️</span>
+        <h3>SQLi Time-Based Blind</h3>
+      </div>
+      <p>Chứng minh blind SQLi bằng hàm SLEEP — server phản hồi trễ 5 giây khi payload đúng.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <span class="vuln-tag sqli">Blind SQLi</span>
+        <span class="vuln-tag owasp">A03:2021</span>
+      </div>
+      <div class="lab-owasp">Endpoint: /product?id=</div>
+    </a>
+
+    <!-- L3 -->
+    <a href="{{ url_for('comments') }}" class="lab-card" style="--glow-color:#ffd60008;">
+      <div class="lab-num">L3 · A03:2021</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:1.8rem;">📜</span>
+        <h3>Stored XSS</h3>
+      </div>
+      <p>Inject script vào comment, payload tự chạy khi bất kỳ user khác mở trang — đánh cắp cookie.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <span class="vuln-tag xss">XSS</span>
+        <span class="vuln-tag owasp">A03:2021</span>
+      </div>
+      <div class="lab-owasp">Endpoint: /comments</div>
+    </a>
+
+    <!-- L4 -->
+    <a href="{{ url_for('invoices') }}" class="lab-card" style="--glow-color:#9d4edd08;">
+      <div class="lab-num">L4 · A01:2021</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:1.8rem;">🔓</span>
+        <h3>IDOR</h3>
+      </div>
+      <p>Đọc hóa đơn của người dùng khác bằng cách thay đổi invoice_id — không có kiểm tra quyền sở hữu.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <span class="vuln-tag idor">IDOR</span>
+        <span class="vuln-tag owasp">A01:2021</span>
+      </div>
+      <div class="lab-owasp">Endpoint: /api/invoice/&lt;id&gt;</div>
+    </a>
+
+    <!-- L5 -->
+    <a href="{{ url_for('fetch_url') }}" class="lab-card" style="--glow-color:#00d4ff08;">
+      <div class="lab-num">L5 · A10:2021</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:1.8rem;">🌐</span>
+        <h3>SSRF</h3>
+      </div>
+      <p>Đọc endpoint metadata nội bộ AWS IMDS — server fetch URL tùy ý do người dùng cung cấp.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <span class="vuln-tag ssrf">SSRF</span>
+        <span class="vuln-tag owasp">A10:2021</span>
+      </div>
+      <div class="lab-owasp">Endpoint: /fetch</div>
+    </a>
+
+    <!-- L6 -->
+    <a href="{{ url_for('login') }}" class="lab-card" style="--glow-color:#00ff9d08;">
+      <div class="lab-num">L6 · A07:2021</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:1.8rem;">🔑</span>
+        <h3>Burp Repeater — Auth Bypass</h3>
+      </div>
+      <p>Bắt request đăng nhập, thêm tham số <code>role=admin</code> qua Burp Repeater để leo quyền.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <span class="vuln-tag auth">Auth Bypass</span>
+        <span class="vuln-tag owasp">A07:2021</span>
+      </div>
+      <div class="lab-owasp">Endpoint: POST /login</div>
+    </a>
+
+  </div>
+
+  <!-- ─── Credentials box ─── -->
+  <div class="card fade-in" style="margin-bottom:40px;">
+    <div class="card-header">
+      <div class="card-icon yellow">🔑</div>
+      <div>
+        <div class="card-title">Thông tin đăng nhập Lab</div>
+        <div class="card-subtitle">Dùng để đăng nhập và thực hiện các bài lab</div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <div style="font-size:0.78rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Tài khoản thông thường</div>
+        <div class="code-block">
+Username: pentester<br>
+Password: T3st!ng2024<br>
+Invoice:  #1042 (owned)
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.78rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Sau khi leo quyền (L6)</div>
+        <div class="code-block" style="color:var(--accent-red);">
+Username: pentester<br>
+Role:     admin (injected)<br>
+Access:   /admin panel
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Warning ─── -->
+  <div class="alert alert-danger fade-in">
+    <span style="font-size:1.2rem;">⚠️</span>
+    <div>
+      <strong>CHỈ DÀNH CHO MỤC ĐÍCH HỌC TẬP.</strong> Ứng dụng này chứa các lỗ hổng bảo mật có chủ đích.
+      Không triển khai lên môi trường production. Sử dụng trong dải lab được cấp phát.
+    </div>
+  </div>
+
+</div>
+{% endblock %}
